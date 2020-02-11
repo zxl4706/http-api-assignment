@@ -9,9 +9,10 @@ const respond = (request, response, content, status, type) => {
 };
 
 
-const success = (request, response, acceptedTypes) => {
+const success = (request, response, params, acceptedTypes) => {
   const responseJSON = {
     message: 'This is a successful response',
+    id: 'Success'
   };
 
   console.log(acceptedTypes[0]);
@@ -19,6 +20,7 @@ const success = (request, response, acceptedTypes) => {
   if (acceptedTypes[0] === 'text/xml') {
     let responseXML = '<response>';
     responseXML = `${responseXML} <message>${responseJSON.message}</message>`;
+    responseXML = `${responseXML} <id>${responseJSON.id}</id>`;
     responseXML = `${responseXML} </response>`;
 
     return respond(request, response, responseXML, 200, 'text/xml');
@@ -32,13 +34,11 @@ const success = (request, response, acceptedTypes) => {
 const badRequest = (request, response, params, acceptedTypes) => {
   const responseJSON = {
     message: 'This request has the required parameters',
+    id: 'Bad Request'
   };
 
 
   if (!params.valid || params.valid !== 'true') {
-    responseJSON.message = 'Missing valid query parameter set to true';
-
-    responseJSON.id = 'badRequest';
 
     if (acceptedTypes[0] === 'text/xml') {
       let responseXML = '<response>';
@@ -73,14 +73,11 @@ const unauthorized = (request, response, params, acceptedTypes) => {
   // message to send
   const responseJSON = {
     message: 'You have successfully viewed the content.',
+    id: 'Unauthorized'
   };
 
   // if the request does not contain a valid=true query parameter
   if (!params.loggedIn || params.loggedIn !== 'yes') {
-    // set our error message
-    responseJSON.message = 'Missing valid query parameter set to yes';
-    // give the error a consistent id
-    responseJSON.id = 'unauthorized';
 
     // if the client's most preferred type (first option listed)
     // is xml, then respond xml instead
@@ -94,7 +91,6 @@ const unauthorized = (request, response, params, acceptedTypes) => {
       // return response passing out string and content type
       return respond(request, response, responseXML, 401, 'text/xml');
     }
-
     const jsonString = JSON.stringify(responseJSON);
 
     // return our json with a 400 bad request code
@@ -107,6 +103,7 @@ const unauthorized = (request, response, params, acceptedTypes) => {
     // create a valid XML string with name and age tags.
     let responseXML = '<response>';
     responseXML = `${responseXML} <message>${responseJSON.message}</message>`;
+    responseXML = `${responseXML} <id>${responseJSON.id}</id>`;
     responseXML = `${responseXML} </response>`;
 
     // return response passing out string and content type
@@ -122,7 +119,7 @@ const unauthorized = (request, response, params, acceptedTypes) => {
   return respond(request, response, jsonString, 200, 'application/json');
 };
 
-const forbidden = (request, response, acceptedTypes) => {
+const forbidden = (request, response, params, acceptedTypes) => {
   // error message with a description and consistent error id
   const responseJSON = {
     message: 'You do not have access to this content.',
@@ -132,6 +129,7 @@ const forbidden = (request, response, acceptedTypes) => {
   if (acceptedTypes[0] === 'text/xml') {
     let responseXML = '<response>';
     responseXML = `${responseXML} <message>${responseJSON.message}</message>`;
+    responseXML = `${responseXML} <id>${responseJSON.id}</id>`;
     responseXML = `${responseXML} </response>`;
 
     return respond(request, response, responseXML, 403, 'text/xml');
@@ -142,7 +140,7 @@ const forbidden = (request, response, acceptedTypes) => {
   return respond(request, response, jsonString, 403, 'application/json');
 };
 
-const internal = (request, response, acceptedTypes) => {
+const internal = (request, response, params, acceptedTypes) => {
   // error message with a description and consistent error id
   const responseJSON = {
     message: 'Internal Server Error. Something went wrong',
@@ -152,6 +150,7 @@ const internal = (request, response, acceptedTypes) => {
   if (acceptedTypes[0] === 'text/xml') {
     let responseXML = '<response>';
     responseXML = `${responseXML} <message>${responseJSON.message}</message>`;
+    responseXML = `${responseXML} <id>${responseJSON.id}</id>`;
     responseXML = `${responseXML} </response>`;
 
     return respond(request, response, responseXML, 500, 'text/xml');
@@ -162,7 +161,7 @@ const internal = (request, response, acceptedTypes) => {
   return respond(request, response, jsonString, 500, 'application/json');
 };
 
-const notImplemented = (request, response, acceptedTypes) => {
+const notImplemented = (request, response, params, acceptedTypes) => {
   // error message with a description and consistent error id
   const responseJSON = {
     message: 'A get request for this page has not been implemented yet. Check again later for updated content.',
@@ -172,6 +171,7 @@ const notImplemented = (request, response, acceptedTypes) => {
   if (acceptedTypes[0] === 'text/xml') {
     let responseXML = '<response>';
     responseXML = `${responseXML} <message>${responseJSON.message}</message>`;
+    responseXML = `${responseXML} <id>${responseJSON.id}</id>`;
     responseXML = `${responseXML} </response>`;
 
     return respond(request, response, responseXML, 501, 'text/xml');
@@ -183,7 +183,7 @@ const notImplemented = (request, response, acceptedTypes) => {
 };
 
 // function to show not found error
-const notFound = (request, response, acceptedTypes) => {
+const notFound = (request, response, params, acceptedTypes) => {
   // error message with a description and consistent error id
   const responseJSON = {
     message: 'The page you are looking for was not found.',
@@ -193,6 +193,7 @@ const notFound = (request, response, acceptedTypes) => {
   if (acceptedTypes[0] === 'text/xml') {
     let responseXML = '<response>';
     responseXML = `${responseXML} <message>${responseJSON.message}</message>`;
+    responseXML = `${responseXML} <id>${responseJSON.id}</id>`;
     responseXML = `${responseXML} </response>`;
 
     return respond(request, response, responseXML, 404, 'text/xml');

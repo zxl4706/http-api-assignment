@@ -32,18 +32,18 @@
       else if (type === 'text/xml') {
 		//grab the name tag and age tag from our responseXML
 		//This will only work if the responding XML is completely valid.
-		//Otherwise the responseXML field will be null
-        const name = xhr.responseXML.querySelector('name').textContent;
-        const age = xhr.responseXML.querySelector('age').textContent;
+    //Otherwise the responseXML field will be null
+        const id = xhr.responseXML.querySelector('id').textContent;
+        const message = xhr.responseXML.querySelector('message').textContent;
 		
 		//add the xml fields to our html elements
-        h1.textContent = `Name: ${name}`;
-        p.textContent = `Age: ${age}`; 
+        h1.textContent = `${id}`;
+        p.textContent = `Message: ${message}`; 
       }
       
 	  //append the h1 and p to the content.
-      content.appendChild(h1);
-      content.appendChild(p);
+      document.querySelector("#myHeader").innerHTML = h1.textContent;
+      document.querySelector("#myP").innerHTML = p.textContent;
     };
     
     //function to send an xhr request
@@ -69,11 +69,10 @@
       const responseType = document.querySelector("#type");
       const button = document.querySelector("#send");
       
-	   //functions to call sendAjax for us with the correct parameters
-      const sendXHR = () => sendAjax(idType.value, responseType.value);
-      
-	   //attach the correct functions to the correct events
-      button.addEventListener('click', sendXHR);
+      button.addEventListener('click', () => {
+          //functions to call sendAjax for us with the correct parameters
+          sendAjax(idType.value, responseType.value);
+      });
     };
 
     window.onload = init;
@@ -99,6 +98,8 @@
     <button id="send">Send</button>
   </section>
   <section id="content">
+    <h1 id="myHeader"></h1>
+    <p id="myP"></p>
   </section>
 </body>
 </html>
