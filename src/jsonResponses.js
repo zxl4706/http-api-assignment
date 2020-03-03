@@ -1,218 +1,80 @@
-// function to send response
-const respond = (request, response, content, status, type) => {
-  // set status code (200 success) and content type
-  response.writeHead(status, { 'Content-Type': type });
-  // write the content string or buffer to response
-  response.write(content);
-  // send the response to the client
+const fs = require('fs');
+
+const usersFile = fs.readFileSync(`${__dirname}/users.json`);
+const { users } = JSON.parse(usersFile);
+
+// function to respond with a json object
+// takes request, response, status code and object to send
+const respondJSON = (request, response, status, object) => {
+  response.writeHead(status, { 'Content-Type': 'application/json' });
+  response.write(JSON.stringify(object));
   response.end();
 };
 
-
-const success = (request, response, params, acceptedTypes) => {
-  const responseJSON = {
-    message: 'This is a successful response',
-    id: 'Success'
-  };
-
-  console.log(acceptedTypes[0]);
-
-  if (acceptedTypes[0] === 'text/xml') {
-    let responseXML = '<response>';
-    responseXML = `${responseXML} <message>${responseJSON.message}</message>`;
-    responseXML = `${responseXML} <id>${responseJSON.id}</id>`;
-    responseXML = `${responseXML} </response>`;
-
-    return respond(request, response, responseXML, 200, 'text/xml');
-  }
-
-  const jsonString = JSON.stringify(responseJSON);
-
-  return respond(request, response, jsonString, 200, 'application/json');
+// function to respond without json body
+// takes request, response and status code
+const respondJSONMeta = (request, response, status) => {
+  response.writeHead(status, { 'Content-Type': 'application/json' });
+  response.end();
 };
 
-const badRequest = (request, response, params, acceptedTypes) => {
+// return user object as JSON
+const getUsers = (request, response) => {
   const responseJSON = {
-    message: 'This request has the required parameters',
-    id: 'Bad Request'
+    users,
   };
 
-
-  if (!params.valid || params.valid !== 'true') {
-
-    if (acceptedTypes[0] === 'text/xml') {
-      let responseXML = '<response>';
-      responseXML = `${responseXML} <message>${responseJSON.message}</message>`;
-      responseXML = `${responseXML} <id>${responseJSON.id}</id>`;
-      responseXML = `${responseXML} </response>`;
-
-      return respond(request, response, responseXML, 400, 'text/xml');
-    }
-
-    const jsonString = JSON.stringify(responseJSON);
-
-    return respond(request, response, jsonString, 400, 'application/json');
-  }
-
-  if (acceptedTypes[0] === 'text/xml') {
-    let responseXML = '<response>';
-    responseXML = `${responseXML} <message>${responseJSON.message}</message>`;
-    responseXML = `${responseXML} </response>`;
-
-    return respond(request, response, responseXML, 400, 'text/xml');
-  }
-
-  const jsonString = JSON.stringify(responseJSON);
-
-  // send our json with a success status code
-  return respond(request, response, jsonString, 200, 'application/json');
+  respondJSON(request, response, 200, responseJSON);
 };
 
-// function to show a bad request without the correct parameters
-const unauthorized = (request, response, params, acceptedTypes) => {
-  // message to send
+// function to add a user from a POST body
+const addUser = (request, response, body) => {
+  // default json message
   const responseJSON = {
-    message: 'You have successfully viewed the content.',
-    id: 'Unauthorized'
+    message: 'All input field are required.',
   };
 
-  // if the request does not contain a valid=true query parameter
-  if (!params.loggedIn || params.loggedIn !== 'yes') {
-
-    // if the client's most preferred type (first option listed)
-    // is xml, then respond xml instead
-    if (acceptedTypes[0] === 'text/xml') {
-      // create a valid XML string with name and age tags.
-      let responseXML = '<response>';
-      responseXML = `${responseXML} <message>${responseJSON.message}</message>`;
-      responseXML = `${responseXML} <id>${responseJSON.id}</id>`;
-      responseXML = `${responseXML} </response>`;
-
-      // return response passing out string and content type
-      return respond(request, response, responseXML, 401, 'text/xml');
-    }
-    const jsonString = JSON.stringify(responseJSON);
-
-    // return our json with a 400 bad request code
-    return respond(request, response, jsonString, 401, 'application/json');
+  // check to make sure we have both fields
+  // We might want more validation than just checking if they exist
+  // This could easily be abused with invalid types (such as booleans, numbers, etc)
+  // If either are missing, send back an error message as a 400 badRequest
+  if (!body.name || !body.number || !body.email || !body.interest) {
+    responseJSON.id = 'missingParams';
+    return respondJSON(request, response, 400, responseJSON);
   }
 
-  // if the client's most preferred type (first option listed)
-  // is xml, then respond xml instead
-  if (acceptedTypes[0] === 'text/xml') {
-    // create a valid XML string with name and age tags.
-    let responseXML = '<response>';
-    responseXML = `${responseXML} <message>${responseJSON.message}</message>`;
-    responseXML = `${responseXML} <id>${responseJSON.id}</id>`;
-    responseXML = `${responseXML} </response>`;
+  // default status code to 201 created
+  let responseCode = 201;
 
-    // return response passing out string and content type
-    return respond(request, response, responseXML, 401, 'text/xml');
+  // if that user's name already exists in our object
+  // then switch to a 204 updated status
+  if (users[body.name]) {
+    responseCode = 204;
+  } else {
+    // otherwise create an object with that name
+    users[body.name] = {};
   }
 
-  // stringify the json object (so it doesn't use references/pointers/etc)
-  // but is instead a flat string object.
-  // Then write it to the response.
-  const jsonString = JSON.stringify(responseJSON);
+  // add or update fields for this user name
+  users[body.name].name = body.name;
+  users[body.name].number = body.number;
+  users[body.name].email = body.email;
+  users[body.name].interest = body.interest;
 
-  // if the parameter is here, send json with a success status code
-  return respond(request, response, jsonString, 200, 'application/json');
+  // if response is created, then set our created message
+  // and sent response with a message
+  if (responseCode === 201) {
+    responseJSON.message = 'Created Successfully';
+    return respondJSON(request, response, responseCode, responseJSON);
+  }
+  // 204 has an empty payload, just a success
+  // It cannot have a body, so we just send a 204 without a message
+  // 204 will not alter the browser in any way!!!
+  return respondJSONMeta(request, response, responseCode);
 };
 
-const forbidden = (request, response, params, acceptedTypes) => {
-  // error message with a description and consistent error id
-  const responseJSON = {
-    message: 'You do not have access to this content.',
-    id: 'forbidden',
-  };
-
-  if (acceptedTypes[0] === 'text/xml') {
-    let responseXML = '<response>';
-    responseXML = `${responseXML} <message>${responseJSON.message}</message>`;
-    responseXML = `${responseXML} <id>${responseJSON.id}</id>`;
-    responseXML = `${responseXML} </response>`;
-
-    return respond(request, response, responseXML, 403, 'text/xml');
-  }
-
-  const jsonString = JSON.stringify(responseJSON);
-
-  return respond(request, response, jsonString, 403, 'application/json');
-};
-
-const internal = (request, response, params, acceptedTypes) => {
-  // error message with a description and consistent error id
-  const responseJSON = {
-    message: 'Internal Server Error. Something went wrong',
-    id: 'internal',
-  };
-
-  if (acceptedTypes[0] === 'text/xml') {
-    let responseXML = '<response>';
-    responseXML = `${responseXML} <message>${responseJSON.message}</message>`;
-    responseXML = `${responseXML} <id>${responseJSON.id}</id>`;
-    responseXML = `${responseXML} </response>`;
-
-    return respond(request, response, responseXML, 500, 'text/xml');
-  }
-
-  const jsonString = JSON.stringify(responseJSON);
-
-  return respond(request, response, jsonString, 500, 'application/json');
-};
-
-const notImplemented = (request, response, params, acceptedTypes) => {
-  // error message with a description and consistent error id
-  const responseJSON = {
-    message: 'A get request for this page has not been implemented yet. Check again later for updated content.',
-    id: 'notImplemented',
-  };
-
-  if (acceptedTypes[0] === 'text/xml') {
-    let responseXML = '<response>';
-    responseXML = `${responseXML} <message>${responseJSON.message}</message>`;
-    responseXML = `${responseXML} <id>${responseJSON.id}</id>`;
-    responseXML = `${responseXML} </response>`;
-
-    return respond(request, response, responseXML, 501, 'text/xml');
-  }
-
-  const jsonString = JSON.stringify(responseJSON);
-
-  return respond(request, response, jsonString, 501, 'application/json');
-};
-
-// function to show not found error
-const notFound = (request, response, params, acceptedTypes) => {
-  // error message with a description and consistent error id
-  const responseJSON = {
-    message: 'The page you are looking for was not found.',
-    id: 'notFound',
-  };
-
-  if (acceptedTypes[0] === 'text/xml') {
-    let responseXML = '<response>';
-    responseXML = `${responseXML} <message>${responseJSON.message}</message>`;
-    responseXML = `${responseXML} <id>${responseJSON.id}</id>`;
-    responseXML = `${responseXML} </response>`;
-
-    return respond(request, response, responseXML, 404, 'text/xml');
-  }
-
-  const jsonString = JSON.stringify(responseJSON);
-
-  return respond(request, response, jsonString, 404, 'application/json');
-};
-
-// exports to set functions to public.
-// In this syntax, you can do getIndex:getIndex, but if they
-// are the same name, you can short handle to just getIndex,
+// public exports
 module.exports = {
-  success,
-  badRequest,
-  unauthorized,
-  forbidden,
-  internal,
-  notImplemented,
-  notFound,
+  getUsers,
+  addUser,
 };

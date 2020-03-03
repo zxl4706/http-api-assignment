@@ -1,0 +1,35 @@
+{
+	"users":{
+		"Linda":{
+			"name": "Linda",
+			"number": "192-423-5123",
+			"email": "randomemail@email.com",
+			"interest": "Videogames"
+		},
+		"Joe":{
+			"name": "Joe",
+			"number": "029-483-2391",
+			"email": "Joemail@email.com",
+			"interest": "Hiking"
+		},
+		"Joan":{
+			"name": "Kenneth",
+			"number": "840-324-5334",
+			"email": "icecream232@email.com",
+			"interest": "Badminton"
+		},
+		"Kenneth":{
+			"name": "Roman",
+			"number": "940-423-7623",
+			"email": "cheeseeto292@email.com",
+			"interest": "Yoga"
+		},
+		"Ryland":{
+			"name": "Collin",
+			"number": "859-283-4290",
+			"email": "morningsun2093@email.com",
+			"interest": "Film Production"
+		}
+	}
+
+}

@@ -3,6 +3,7 @@ html, body {
   width: 100%;
   margin: 0;
   padding: 0;
+  background-color: rosybrown;
 }
 
 #top {
@@ -14,8 +15,26 @@ html, body {
   font-size: 2em;
 }
 
-#content {
-  margin-top: 100px;
-  font-size: 2em;
-  text-align: center;
+.col-3 {
+  min-width: 33%;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  padding-right: 0px;
+  padding-left: 0px;
+}
+
+#registerForm {
+  background-color: blanchedalmond;
+  padding: 20px;
+}
+
+#directoryForm {
+  background-color: cornsilk;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+#titleTop {
+  color: white;
+  padding: 0px;
 }
